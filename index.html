@@ -3,21 +3,80 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Gesture Christmas Tree</title>
+<title>Merry Christmas</title>
 <style>
-  html, body { margin: 0; height: 100%; background: #02030a; overflow: hidden; font-family: "Helvetica Neue", Arial, sans-serif; color: #e8ecff; }
+  :root {
+    --pink: #ff9ccf;
+    --pink-soft: #ffc6e3;
+    --lilac: #c9a2ff;
+    --ink: #f6e9f2;
+    --track: #2a1022;
+  }
+  html, body { margin: 0; height: 100%; background: #04030b; overflow: hidden; color: var(--ink);
+    font-family: serif; }
+  button { font-family: serif; }
   canvas { display: block; }
-  #hud { position: fixed; left: 20px; top: 18px; pointer-events: none; }
-  #hud h1 { margin: 0; font-weight: 300; letter-spacing: .25em; font-size: 15px; color: #ffe9a8; text-transform: uppercase; }
-  #status { margin-top: 6px; font-size: 12px; opacity: .75; letter-spacing: .05em; }
-  #meter { margin-top: 10px; width: 160px; height: 4px; background: rgba(255,255,255,.12); border-radius: 2px; overflow: hidden; }
-  #meterFill { height: 100%; width: 50%; background: linear-gradient(90deg,#6cf,#ffd76a,#ff6a8a); transition: width .1s; }
-  #help { position: fixed; left: 20px; bottom: 18px; font-size: 11px; opacity: .55; line-height: 1.6; pointer-events: none; }
-  #cam { position: fixed; right: 18px; bottom: 18px; width: 180px; border-radius: 10px; transform: scaleX(-1); opacity: .55; border: 1px solid rgba(255,255,255,.15); }
-  #start { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px; background: radial-gradient(ellipse at center, rgba(10,14,40,.6), rgba(0,0,0,.85)); z-index: 5; }
-  #start button { background: none; border: 1px solid #ffd76a; color: #ffd76a; padding: 12px 28px; border-radius: 30px; letter-spacing: .2em; text-transform: uppercase; cursor: pointer; font-size: 13px; }
-  #start button:hover { background: rgba(255,215,106,.12); }
-  #start p { font-size: 12px; opacity: .6; margin: 0; }
+
+  /* Greeting, left middle */
+  #greeting { position: fixed; left: 5vw; top: 50%; transform: translateY(-50%); pointer-events: none; }
+  #greeting h1 { margin: 0; font-family: serif; font-weight: 400; line-height: 1.1;
+    font-size: clamp(24px, 3.2vw, 46px); color: var(--pink-soft);
+    text-shadow: 0 0 18px rgba(255,140,200,.35), 0 0 2px rgba(255,255,255,.4); }
+  #greeting h1 span { display: block; padding-left: .9em; }
+  #meter { margin: 22px 0 0 .3em; width: 170px; height: 3px; background: var(--track); border-radius: 2px; overflow: hidden; }
+  #meter.on { opacity: 1; }
+  #meterFill { height: 100%; width: 50%; background: linear-gradient(90deg, #ff7fbf, var(--pink-soft)); transition: width .12s; box-shadow: 0 0 6px #ff7fbf; }
+  #meterLabels { display: flex; justify-content: space-between; width: 170px; margin: 6px 0 0 .3em; font-size: 12px; letter-spacing: .15em;
+    color: rgba(255,198,227,.5); text-transform: uppercase; }
+  #meter.on + #meterLabels { opacity: 1; }
+  #ribbon { margin: 18px 0 0 .3em; }
+  /* fills outward from the centre: left for anticlockwise, right for clockwise */
+  #ribbonTrack { position: relative; width: 170px; height: 3px; background: #2a2414; border-radius: 2px; overflow: hidden; }
+  #ribbonFill { position: absolute; top: 0; left: 50%; height: 100%; width: 0; background: #ffe2a0; box-shadow: 0 0 6px #ffe7a8; }
+  #ribbonLabels { display: flex; justify-content: space-between; width: 170px; margin-top: 6px; font-size: 13px; color: rgba(255,231,168,.6); }
+
+  #cam { position: fixed; right: 18px; bottom: 18px; width: 160px; border-radius: 12px; transform: scaleX(-1); opacity: .45;
+    border: 1px solid rgba(255,160,210,.25); display: none; }
+
+  /* Intro / instructions card */
+  #intro { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 5;
+    background: radial-gradient(ellipse at center, rgba(30,10,30,.55), rgba(2,2,8,.88)); transition: opacity .7s; }
+  #intro.hide { opacity: 0; pointer-events: none; }
+  .card { width: min(560px, calc(100vw - 32px)); padding: 34px 32px 28px; box-sizing: border-box; text-align: center;
+    border: 1px solid rgba(255,170,215,.22); border-radius: 22px; background: rgba(20,8,22,.55); backdrop-filter: blur(10px);
+    box-shadow: 0 0 60px rgba(255,120,190,.08); }
+  .card h2 { margin: 0; font-family: serif; font-weight: 400; font-size: 38px; color: var(--pink-soft); }
+  .card .sub { margin: 4px 0 24px; opacity: .65; font-size: 16px; }
+  .gestures { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 26px; }
+  .g { padding: 14px 6px 12px; border-radius: 14px; background: rgba(255,170,215,.05); border: 1px solid rgba(255,170,215,.12); }
+  .g .ico { font-size: 28px; filter: saturate(.6); }
+  .g b { display: block; margin-top: 6px; font-weight: 400; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: var(--pink); }
+  .g small { display: block; margin-top: 3px; font-size: 13px; opacity: .6; line-height: 1.3; }
+  .btns { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .card button { font-family: inherit; cursor: pointer; letter-spacing: .2em; text-transform: uppercase; font-size: 13px; }
+  #startBtn { background: linear-gradient(90deg, rgba(255,127,191,.25), rgba(201,162,255,.25)); color: var(--ink);
+    border: 1px solid rgba(255,170,215,.5); padding: 12px 30px; border-radius: 30px; }
+  #startBtn:hover { background: linear-gradient(90deg, rgba(255,127,191,.4), rgba(201,162,255,.4)); }
+  #skipBtn { background: none; border: none; color: rgba(246,233,242,.5); padding: 4px; font-size: 11px; }
+  #skipBtn:hover { color: var(--ink); }
+  .fine { margin-top: 18px; font-size: 12px; opacity: .45; line-height: 1.5; }
+
+  /* small help button to reopen */
+  .roundBtn { position: fixed; top: 18px; width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+    background: rgba(20,8,22,.5); border: 1px solid rgba(255,170,215,.3); color: var(--pink-soft);
+    font-family: serif; font-size: 17px; z-index: 4; padding: 0; }
+  #helpBtn { right: 20px; }
+  #musicBtn { right: 64px; font-style: normal; }
+  #musicBtn.off { opacity: .45; text-decoration: line-through; }
+  @media (max-width: 640px) { .gestures { grid-template-columns: repeat(2, 1fr); } }
+  #toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); font-size: 14px;
+    color: var(--pink-soft); opacity: 0; transition: opacity .6s; pointer-events: none; }
+  #toast.on { opacity: .8; }
+
+  @media (max-width: 640px) {
+    #greeting { top: 14%; transform: none; }
+    #cam { width: 110px; }
+  }
 </style>
 <script type="importmap">
 { "imports": {
@@ -27,14 +86,35 @@
 </script>
 </head>
 <body>
-<div id="hud">
-  <h1>✦ Gesture Tree ✦</h1>
-  <div id="status">Waiting to start…</div>
+<div id="greeting">
+  <h1>Merry, Merry<span>Christmas</span></h1>
   <div id="meter"><div id="meterFill"></div></div>
+  <div id="meterLabels"><span>✊</span><span>✋</span></div>
+  <div id="ribbon"><div id="ribbonTrack"><div id="ribbonFill"></div></div>
+    <div id="ribbonLabels"><span>↺</span><span>☝️</span><span>↻</span></div></div>
 </div>
-<div id="help">✋ Open hand → explode &nbsp;·&nbsp; ✊ Fist → condense &nbsp;·&nbsp; no hand → tree<br>No camera? Hold <b>E</b> to explode, <b>C</b> to condense · drag to orbit</div>
 <video id="cam" autoplay playsinline muted></video>
-<div id="start"><button id="startBtn">Enable camera</button><p>or press any key / click “skip” to use keyboard</p><button id="skipBtn" style="border-color:#8aa;color:#8aa">skip</button></div>
+<button id="helpBtn" class="roundBtn" title="How to play">i</button>
+<button id="musicBtn" class="roundBtn" title="Music on/off">♪</button>
+<div id="toast"></div>
+
+<div id="intro">
+  <div class="card">
+    <h2>Make it sparkle</h2>
+    <p class="sub">Your hand conducts the tree</p>
+    <div class="gestures">
+      <div class="g"><div class="ico">✋</div><b>Open</b><small>scatter the lights into the sky</small></div>
+      <div class="g"><div class="ico">✊</div><b>Fist</b><small>gather them into a glowing heart</small></div>
+      <div class="g"><div class="ico">☝️</div><b>Twirl</b><small>point one finger up and circle it to wind a ribbon of stars</small></div>
+      <div class="g"><div class="ico">🎄</div><b>Rest</b><small>lower your hand to rebuild the tree</small></div>
+    </div>
+    <div class="btns">
+      <button id="startBtn">Begin with camera</button>
+      <button id="skipBtn">continue without camera</button>
+    </div>
+    <div class="fine">No camera? Hold <b>E</b> to scatter, <b>C</b> to gather — the longer you hold, the further it goes. Hold <b>←</b> / <b>→</b> to wind the ribbon.<br>Drag to orbit · scroll to zoom · ♪ toggles music · video stays on your device</div>
+  </div>
+</div>
 
 <script type="module">
 import * as THREE from 'three';
@@ -50,19 +130,20 @@ renderer.setSize(innerWidth, innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x02030a, 0.02);
+scene.fog = new THREE.FogExp2(0x04030b, 0.02);
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 400);
-camera.position.set(0, 4.5, 17);
+camera.position.set(0, 4.3, 12.5);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 4, 0);
 controls.enableDamping = true;
 controls.autoRotate = true;
-controls.autoRotateSpeed = 0.6;
+controls.autoRotateSpeed = 1.8;
 controls.minDistance = 6; controls.maxDistance = 40;
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.1, 0.6, 0.0);
+// subtle bloom: low strength + small radius so each light only glows locally
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.25, 0.15);
 composer.addPass(bloom);
 
 // ---------- Background stars ----------
@@ -71,7 +152,7 @@ composer.addPass(bloom);
   for (let i = 0; i < N; i++) {
     const r = 80 + Math.random() * 120, t = Math.random() * Math.PI * 2, p = Math.acos(2 * Math.random() - 1);
     pos.set([r * Math.sin(p) * Math.cos(t), r * Math.cos(p), r * Math.sin(p) * Math.sin(t)], i * 3);
-    sz[i] = Math.random() * 1.6 + 0.4; ph[i] = Math.random() * 6.28;
+    sz[i] = Math.random() * 1.4 + 0.4; ph[i] = Math.random() * 6.28;
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -80,61 +161,72 @@ composer.addPass(bloom);
   const m = new THREE.ShaderMaterial({
     uniforms: { uTime: { value: 0 } },
     vertexShader: `attribute float size; attribute float phase; uniform float uTime; varying float vA;
-      void main(){ vA = 0.45 + 0.55*sin(uTime*1.5+phase*3.0);
+      void main(){ vA = 0.35 + 0.45*sin(uTime*1.5+phase*3.0);
         vec4 mv = modelViewMatrix*vec4(position,1.); gl_PointSize = size*2.0; gl_Position = projectionMatrix*mv; }`,
     fragmentShader: `varying float vA; void main(){ float d=length(gl_PointCoord-.5); if(d>.5) discard;
-        gl_FragColor = vec4(vec3(0.8,0.85,1.0), vA*smoothstep(.5,0.,d)); }`,
+        gl_FragColor = vec4(vec3(0.85,0.82,1.0), vA*smoothstep(.5,0.,d)); }`,
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false
   });
   const stars = new THREE.Points(g, m); stars.name = 'stars'; scene.add(stars);
 }
 
 // ---------- Tree particles ----------
-const H = 9, R = 3.6;
-const COUNT = 16000;
+const H = 9, R = 3.8, TIERS = 7;
+const COUNT = 18000;
 const aTree = new Float32Array(COUNT * 3), aExp = new Float32Array(COUNT * 3), aCon = new Float32Array(COUNT * 3);
 const aCol = new Float32Array(COUNT * 3), aSize = new Float32Array(COUNT), aRnd = new Float32Array(COUNT);
-const ornamentColors = [0xff3b5c, 0xffc83d, 0x3dc8ff, 0xc77dff, 0xff8a3d, 0xffffff].map(c => new THREE.Color(c));
+// glitter palette: pinks, purples, white-ish, blue-ish
+const glitter = [0xff6fb5, 0xff9ccf, 0xffc6e3, 0xd98cff, 0xb48cff, 0xfff1fa, 0xeaf2ff, 0xa9d4ff, 0x8fb8ff].map(c => new THREE.Color(c));
 const col = new THREE.Color();
+
+// Tiered tree: the outer radius is a sawtooth — each tier flares out at its bottom
+// edge, then tapers in toward the next tier, with a slight droop at the rim.
+function tierRadius(y) {
+  const env = R * (1 - y / H);                 // overall cone envelope
+  const f = (y / H) * TIERS, t = f - Math.floor(f); // 0 = tier bottom edge, 1 = tier top
+  return env * (0.5 + 0.5 * Math.pow(1 - t, 1.3));
+}
+function tierPoint(y, surface) {
+  const rad = tierRadius(y) * (surface ? 1 : Math.pow(Math.random(), 0.45));
+  const a = Math.random() * Math.PI * 2;
+  const edge = rad / (R * (1 - y / H) + 1e-3);
+  return [Math.cos(a) * rad, y - 0.18 * edge * edge, Math.sin(a) * rad];
+}
+// bias y toward tier bottom edges so each skirt reads clearly
+function tierY() {
+  const k = Math.floor(Math.pow(Math.random(), 1.25) * TIERS);
+  const t = Math.pow(Math.random(), 1.8);
+  return Math.min((k + t) / TIERS * H, H * 0.98);
+}
 
 for (let i = 0; i < COUNT; i++) {
   const r = Math.random();
-  let x, y, z, size;
-  if (r < 0.04) { // star on top: 5-point star shape
+  let p, size;
+  if (r < 0.03) { // star on top: 5-point star
     const a = Math.random() * Math.PI * 2;
     const spike = Math.pow(Math.abs(Math.cos(a * 2.5)), 6);
-    const rad = (0.25 + 0.6 * spike) * Math.sqrt(Math.random());
-    x = Math.sin(a) * rad; y = H + 0.55 + Math.cos(a) * rad; z = (Math.random() - .5) * 0.15;
-    col.setHSL(0.13, 1, 0.55 + Math.random() * 0.25); size = 2.2 + Math.random() * 1.5;
-  } else if (r < 0.13) { // ornaments on surface
-    const h = Math.pow(Math.random(), 0.8), y0 = h * H * 0.95, rad = (1 - y0 / H) * R;
-    const a = Math.random() * Math.PI * 2;
-    x = Math.cos(a) * rad; y = y0 + 0.1; z = Math.sin(a) * rad;
-    col.copy(ornamentColors[(Math.random() * ornamentColors.length) | 0]); size = 2.8 + Math.random() * 2.2;
-  } else if (r < 0.17) { // garland spiral
-    const t = Math.random(), y0 = t * H * 0.92, rad = (1 - y0 / H) * R * 1.03 + 0.05, a = t * Math.PI * 2 * 6;
-    x = Math.cos(a) * rad; y = y0; z = Math.sin(a) * rad;
-    col.setHSL(0.12, 0.9, 0.75); size = 1.2;
-  } else if (r < 0.19) { // trunk
-    const a = Math.random() * Math.PI * 2, rad = Math.random() * 0.45;
-    x = Math.cos(a) * rad; y = -Math.random() * 1.2; z = Math.sin(a) * rad;
-    col.setHSL(0.07, 0.6, 0.22); size = 1.4;
-  } else { // green conical body, denser toward surface, layered branches
-    const y0 = Math.pow(Math.random(), 1.3) * H;
-    const layer = 0.85 + 0.15 * ((y0 * 1.4) % 1);
-    const rad = (1 - y0 / H) * R * layer * Math.pow(Math.random(), 0.35);
-    const a = Math.random() * Math.PI * 2;
-    x = Math.cos(a) * rad; y = y0; z = Math.sin(a) * rad;
-    col.setHSL(0.33 + Math.random() * 0.06, 0.75, 0.22 + Math.random() * 0.25); size = 1.0 + Math.random() * 1.2;
+    const rad = (0.22 + 0.5 * spike) * Math.sqrt(Math.random());
+    p = [Math.sin(a) * rad, H + 0.45 + Math.cos(a) * rad, (Math.random() - .5) * 0.12];
+    col.setHSL(0.12, 0.9, 0.62 + Math.random() * 0.15); size = 1.4 + Math.random() * 0.9;
+  } else if (r < 0.12) { // glitter ornaments, mostly on the tier rims
+    p = tierPoint(tierY(), true);
+    col.copy(glitter[(Math.random() * glitter.length) | 0]); size = 1.6 + Math.random() * 1.4;
+  } else if (r < 0.14) { // trunk
+    const a = Math.random() * Math.PI * 2, rad = Math.random() * 0.4;
+    p = [Math.cos(a) * rad, -Math.random() * 1.1, Math.sin(a) * rad];
+    col.setHSL(0.92, 0.25, 0.18); size = 1.1;
+  } else { // pink body
+    const surface = Math.random() < 0.55;
+    p = tierPoint(tierY(), surface);
+    col.setHSL(0.9 + Math.random() * 0.05, 0.7, 0.32 + Math.random() * 0.22); size = 0.8 + Math.random() * 0.9;
   }
-  aTree.set([x, y, z], i * 3);
+  const [x, y, z] = p;
+  aTree.set(p, i * 3);
   aCol.set([col.r, col.g, col.b], i * 3);
   aSize[i] = size; aRnd[i] = Math.random();
 
-  // explosion: random direction, wide chaotic sphere
   const d = new THREE.Vector3().randomDirection().multiplyScalar(8 + Math.random() * 18);
   aExp.set([x * 0.6 + d.x, y * 0.4 + 4 + d.y, z * 0.6 + d.z], i * 3);
-  // condensed: tight glowing ball at center
   const c = new THREE.Vector3().randomDirection().multiplyScalar(Math.pow(Math.random(), 2.2) * 1.3);
   aCon.set([c.x, c.y + 4.5, c.z], i * 3);
 }
@@ -154,25 +246,21 @@ const mat = new THREE.ShaderMaterial({
     uniform float uTime, uExp, uCon, uPR;
     varying vec3 vCol; varying float vTw;
     void main(){
-      // per-particle staggered easing so the transition ripples instead of moving in lockstep
       float e = smoothstep(aRnd*0.35, 0.65+aRnd*0.35, uExp);
       float c = smoothstep(aRnd*0.25, 0.75+aRnd*0.25, uCon);
       vec3 p = position;
-      // gentle idle sway
-      p.x += sin(uTime*0.8 + position.y*0.7 + aRnd*6.0)*0.03;
-      p.z += cos(uTime*0.7 + position.y*0.6 + aRnd*6.0)*0.03;
-      // chaotic swirl for explosion
+      p.x += sin(uTime*0.8 + position.y*0.7 + aRnd*6.0)*0.025;
+      p.z += cos(uTime*0.7 + position.y*0.6 + aRnd*6.0)*0.025;
       vec3 ex = aExp + vec3(sin(uTime*0.9+aRnd*40.0), cos(uTime*0.7+aRnd*31.0), sin(uTime*0.8+aRnd*23.0))*1.6;
       p = mix(p, ex, e);
-      // condensed: swirl around center
       float ang = uTime*(1.5+aRnd*2.0);
       vec3 cc = aCon - vec3(0.,4.5,0.);
       cc = vec3(cc.x*cos(ang)-cc.z*sin(ang), cc.y, cc.x*sin(ang)+cc.z*cos(ang)) + vec3(0.,4.5,0.);
       p = mix(p, cc, c);
       vec4 mv = modelViewMatrix*vec4(p,1.0);
-      vTw = 0.7 + 0.3*sin(uTime*3.0 + aRnd*50.0);
-      vCol = aCol * (1.0 + c*0.6);
-      gl_PointSize = aSize * uPR * (34.0 / -mv.z) * (1.0 - 0.35*c) * (1.0 + 0.3*e);
+      vTw = 0.65 + 0.35*sin(uTime*3.0 + aRnd*50.0);
+      vCol = aCol * (1.0 + c*0.3);
+      gl_PointSize = aSize * uPR * (28.0 / -mv.z) * (1.0 - 0.35*c) * (1.0 + 0.25*e);
       gl_Position = projectionMatrix*mv;
     }`,
   fragmentShader: `
@@ -181,39 +269,133 @@ const mat = new THREE.ShaderMaterial({
       float d = length(gl_PointCoord - 0.5);
       if (d > 0.5) discard;
       float core = smoothstep(0.5, 0.0, d);
-      float a = pow(core, 1.6) * vTw;
-      gl_FragColor = vec4(vCol * (0.6 + core*1.2), a);
+      float a = pow(core, 2.2) * vTw * 0.85;   // tighter falloff = crisper, less halo
+      gl_FragColor = vec4(vCol * (0.5 + core*0.6), a);
     }`,
   transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
 });
 const tree = new THREE.Points(geo, mat);
 scene.add(tree);
 
+// ---------- White-gold spiral band ----------
+// Stars sit along a helix hugging the tiered surface. uProg (0..1) reveals the band
+// from the bottom up; uDir (+1/-1) sets which way the helix winds.
+const BAND = 2600, TURNS = 4.5;
+const bU = new Float32Array(BAND), bR = new Float32Array(BAND), bJit = new Float32Array(BAND * 3);
+const bCol = new Float32Array(BAND * 3), bSize = new Float32Array(BAND), bRnd = new Float32Array(BAND);
+for (let i = 0; i < BAND; i++) {
+  const u = Math.random(), y = u * H * 0.94;
+  bU[i] = u;
+  bR[i] = tierRadius(y) * 1.04 + 0.06;
+  bJit.set([(Math.random() - .5) * 0.09, (Math.random() - .5) * 0.22 - 0.12, (Math.random() - .5) * 0.15], i * 3);
+  col.setHSL(0.11 + Math.random() * 0.04, 0.5 + Math.random() * 0.4, 0.78 + Math.random() * 0.18); // white → pale gold
+  bCol.set([col.r, col.g, col.b], i * 3);
+  bSize[i] = 0.7 + Math.pow(Math.random(), 3) * 1.6; bRnd[i] = Math.random();
+}
+const bandGeo = new THREE.BufferGeometry();
+bandGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(BAND * 3), 3)); // computed in shader
+bandGeo.setAttribute('aU', new THREE.BufferAttribute(bU, 1));
+bandGeo.setAttribute('aR', new THREE.BufferAttribute(bR, 1));
+bandGeo.setAttribute('aJit', new THREE.BufferAttribute(bJit, 3));
+bandGeo.setAttribute('aCol', new THREE.BufferAttribute(bCol, 3));
+bandGeo.setAttribute('aSize', new THREE.BufferAttribute(bSize, 1));
+bandGeo.setAttribute('aRnd', new THREE.BufferAttribute(bRnd, 1));
+const bandMat = new THREE.ShaderMaterial({
+  uniforms: { uTime: { value: 0 }, uProg: { value: 0 }, uDir: { value: 1 }, uFade: { value: 1 }, uPR: { value: renderer.getPixelRatio() } },
+  vertexShader: `
+    attribute float aU, aR, aSize, aRnd; attribute vec3 aJit, aCol;
+    uniform float uTime, uProg, uDir, uFade, uPR;
+    varying vec3 vCol; varying float vA;
+    void main(){
+      float th = uDir * aU * ${TURNS.toFixed(1)} * 6.2831853 + aJit.x;
+      vec3 p = vec3(cos(th) * (aR + aJit.z), aU * ${(H * 0.94).toFixed(2)} + aJit.y, sin(th) * (aR + aJit.z));
+      float shown = 1.0 - smoothstep(uProg - 0.015, uProg, aU);          // revealed part
+      float head = exp(-pow((uProg - aU) / 0.03, 2.0)) * step(0.001, uProg); // bright leading edge
+      float shimmer = 0.6 + 0.4 * sin(aU * 80.0 - uTime * 5.0 + aRnd * 6.0); // light flowing upward
+      vA = shown * shimmer * uFade + head * uFade;
+      vCol = aCol * (1.0 + head * 1.2);
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      gl_PointSize = aSize * uPR * (28.0 / -mv.z) * (1.0 + head * 1.5);
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: `
+    varying vec3 vCol; varying float vA;
+    void main(){
+      float d = length(gl_PointCoord - 0.5);
+      if (d > 0.5 || vA < 0.01) discard;
+      float core = smoothstep(0.5, 0.0, d);
+      gl_FragColor = vec4(vCol * (0.55 + core * 0.7), pow(core, 2.2) * vA);
+    }`,
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+});
+scene.add(new THREE.Points(bandGeo, bandMat));
+bandGeo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, H / 2, 0), H); // positions are built in the shader
+
+let bandProg = 0, bandDir = 1;
+const ribbonFill = document.getElementById('ribbonFill');
+const BAND_SPEED = 0.285; // full climb ≈ 3.5 s of steady twirling
+function updateBand(dt, t) {
+  // keyboard fallback: hold → (clockwise) or ← (counter-clockwise)
+  let spin = twirl;
+  if (keys.has('arrowright')) spin = 4; else if (keys.has('arrowleft')) spin = -4;
+  if (Math.abs(spin) > 1.2) {
+    const dir = Math.sign(spin), rate = BAND_SPEED * Math.min(Math.abs(spin) / 4, 1.6);
+    if (dir === bandDir || bandProg === 0) { bandDir = dir; bandProg = Math.min(1, bandProg + rate * dt); }
+    else bandProg = Math.max(0, bandProg - rate * 1.5 * dt); // opposite twirl unwinds first
+  }
+  bandMat.uniforms.uProg.value = bandProg;
+  bandMat.uniforms.uDir.value = bandDir;
+  bandMat.uniforms.uTime.value = t;
+  // The ribbon only lives on the tree shape: it vanishes almost as soon as the tree
+  // starts to scatter or gather, and is wiped so it starts again from the bottom.
+  const away = Math.max(exp, con);
+  if (away > 0.12) bandProg = 0;
+  bandMat.uniforms.uFade.value = 1 - THREE.MathUtils.smoothstep(away, 0.02, 0.1);
+  const half = bandProg * 50;
+  ribbonFill.style.width = half.toFixed(1) + '%';
+  ribbonFill.style.left = (bandDir > 0 ? 50 : 50 - half).toFixed(1) + '%';
+}
+
 // ---------- Input / gesture state ----------
-const statusEl = document.getElementById('status');
-const meterFill = document.getElementById('meterFill');
-let targetExp = 0, targetCon = 0;  // goals from gesture/keys
-let exp = 0, con = 0;              // smoothed values
-let handOpenness = null;           // 0 (fist) .. 1 (open), null = no hand
+const meter = document.getElementById('meter'), meterFill = document.getElementById('meterFill');
+const toastEl = document.getElementById('toast');
+let toastTimer;
+function toast(msg, ms = 3500) {
+  toastEl.textContent = msg; toastEl.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove('on'), ms);
+}
+let targetExp = 0, targetCon = 0, exp = 0, con = 0;
+let handOpenness = null;
+let pointing = false;   // index finger up, other fingers curled
+let twirl = 0;          // smoothed fingertip angular velocity, rad/s (+ = clockwise on screen)
+const trail = [];       // recent fingertip positions for twirl detection
+const turns = [];       // recent heading changes {d, t}
+let lastHeading = null, lastPointAt = -1;
 const keys = new Set();
 addEventListener('keydown', e => keys.add(e.key.toLowerCase()));
 addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 
-function updateTargets() {
-  if (keys.has('e')) { targetExp = 1; targetCon = 0; statusEl.textContent = 'Keyboard: explode'; return; }
-  if (keys.has('c')) { targetExp = 0; targetCon = 1; statusEl.textContent = 'Keyboard: condense'; return; }
-  if (handOpenness === null) { targetExp = 0; targetCon = 0; return; }
-  // continuous mapping: open → explode, closed → condense, middle → tree
+// Keyboard: one slider from -1 (gathered) through 0 (tree) to +1 (scattered).
+// Holding E pushes it up, holding C pulls it down; releasing leaves it where it is,
+// so how long you hold sets how far it goes.
+let keyLevel = 0;
+const KEY_SPEED = 0.3; // ~3.3 s of holding from tree to fully scattered/gathered
+function updateTargets(dt) {
+  const usingKeys = keys.has('e') || keys.has('c');
+  if (keys.has('e')) keyLevel = Math.min(1, keyLevel + KEY_SPEED * dt);
+  if (keys.has('c')) keyLevel = Math.max(-1, keyLevel - KEY_SPEED * dt);
+  if (pointing && !usingKeys) { targetExp = 0; targetCon = 0; return; } // pointing = decorate, keep tree shape
+  if (handOpenness === null || usingKeys) {
+    targetExp = Math.max(keyLevel, 0); targetCon = Math.max(-keyLevel, 0); return;
+  }
   const o = handOpenness;
   targetExp = THREE.MathUtils.smoothstep(o, 0.62, 0.9);
   targetCon = 1 - THREE.MathUtils.smoothstep(o, 0.2, 0.45);
-  statusEl.textContent = o > 0.75 ? '✋ Open hand — explode' : o < 0.3 ? '✊ Fist — condense' : '🎄 Tree';
 }
 
 // ---------- MediaPipe hand tracking ----------
 let landmarker = null, video = document.getElementById('cam'), lastVideoTime = -1;
 async function startCamera() {
-  statusEl.textContent = 'Loading hand model…';
   try {
     const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs');
     const fileset = await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
@@ -223,11 +405,12 @@ async function startCamera() {
     });
     video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } });
     await video.play();
-    statusEl.textContent = 'Show your hand ✋';
+    video.style.display = 'block';
+    meter.classList.add('on');
+    toast('Raise your hand ✋');
   } catch (err) {
     console.error(err);
-    statusEl.textContent = 'Camera unavailable — use E / C keys';
-    video.style.display = 'none';
+    toast('Camera unavailable — hold E or C instead', 5000);
   }
 }
 
@@ -237,19 +420,130 @@ function detectHand() {
   lastVideoTime = video.currentTime;
   const res = landmarker.detectForVideo(video, performance.now());
   const lm = res.landmarks && res.landmarks[0];
-  if (!lm) { handOpenness = null; if (!keys.size) statusEl.textContent = 'No hand — tree'; return; }
-  // openness = avg fingertip distance from wrist, normalised by palm size (wrist→middle MCP)
+  if (!lm) {
+    if (handOpenness !== null) bandProg = 0; // hand just left: wipe the ribbon, start fresh next time
+    handOpenness = null; pointing = false; trail.length = 0; turns.length = 0; twirl *= 0.7; return; }
   const palm = dist(lm[0], lm[9]) || 1e-3;
-  const tips = [4, 8, 12, 16, 20];
-  const avg = tips.reduce((s, t) => s + dist(lm[0], lm[t]), 0) / tips.length / palm;
-  // ~1.0 for fist, ~2.0 for open hand
+  const avg = [4, 8, 12, 16, 20].reduce((s, t) => s + dist(lm[0], lm[t]), 0) / 5 / palm;
   const o = THREE.MathUtils.clamp((avg - 1.05) / 0.85, 0, 1);
   handOpenness = handOpenness === null ? o : handOpenness * 0.6 + o * 0.4;
+
+  // Pointing: index finger straight, middle/ring/pinky curled. Loose thresholds plus
+  // a short grace period, because the pose flickers while the hand is moving in circles.
+  const now = performance.now() / 1000;
+  const ext = (tip, pip) => dist(lm[0], lm[tip]) > dist(lm[0], lm[pip]) * 1.08;
+  const curled = (tip, mcp) => dist(lm[0], lm[tip]) < dist(lm[0], lm[mcp]) * 1.4;
+  const curledCount = [curled(12, 9), curled(16, 13), curled(20, 17)].filter(Boolean).length;
+  if (ext(8, 6) && curledCount >= 2) lastPointAt = now;
+  pointing = now - lastPointAt < 0.4;
+  if (!pointing) { trail.length = 0; turns.length = 0; twirl *= 0.8; return; }
+
+  // Twirl: how fast the fingertip's direction of travel is turning. For a circle this
+  // equals its angular speed no matter where the circle's centre is, and it builds up
+  // smoothly over many loops. Image y points down, so + is clockwise as the user sees it.
+  const tip = { x: 1 - (lm[8].x + lm[7].x) / 2, y: (lm[8].y + lm[7].y) / 2, t: now }; // mirrored, lightly averaged
+  trail.push(tip);
+  while (trail.length && now - trail[0].t > 0.6) trail.shift();
+  const LAG = 3;
+  if (trail.length > LAG + 1) {
+    const a = trail[trail.length - 1], b = trail[trail.length - 1 - LAG];
+    const vx = a.x - b.x, vy = a.y - b.y;
+    if (Math.hypot(vx, vy) > palm * 0.12) {               // ignore jitter when the finger is still
+      const heading = Math.atan2(vy, vx);
+      if (lastHeading !== null) {
+        let d = heading - lastHeading;
+        d = Math.atan2(Math.sin(d), Math.cos(d));
+        turns.push({ d, t: now });
+      }
+      lastHeading = heading;
+    } else lastHeading = null;
+  }
+  while (turns.length && now - turns[0].t > 0.5) turns.shift();
+  const raw = turns.reduce((s, x) => s + x.d, 0) / 0.5;     // rad/s over the last half second
+  twirl = twirl * 0.7 + THREE.MathUtils.clamp(raw, -14, 14) * 0.3;
 }
 
-const startEl = document.getElementById('start');
-document.getElementById('startBtn').onclick = () => { startEl.remove(); startCamera(); };
-document.getElementById('skipBtn').onclick = () => { startEl.remove(); video.style.display = 'none'; statusEl.textContent = 'Keyboard mode — hold E / C'; };
+// ---------- Music: "We Wish You a Merry Christmas" (traditional English carol,
+// public domain) played live by a soft music-box synth — no audio files, no licence needed.
+const music = (() => {
+  let ctx = null, master = null, timer = null, nextTime = 0, idx = 0, on = true;
+  const BEAT = 0.62; // seconds per beat (slow, dreamy waltz)
+  const N = n => 440 * Math.pow(2, (n - 69) / 12);
+  const m = { D4: 62, E4: 64, 'F#4': 66, G4: 67, A4: 69, B4: 71, C5: 72, D5: 74,
+              G2: 43, A2: 45, B2: 47, C3: 48, D3: 50, E3: 52 };
+  // [note, beats, bass?]  — bass note sounds on the bar's downbeat
+  const song = [
+    ['D4',1],
+    ['G4',1,'G2'],['G4',.5],['A4',.5],['G4',.5],['F#4',.5],
+    ['E4',1,'C3'],['E4',1],['E4',1],
+    ['A4',1,'A2'],['A4',.5],['B4',.5],['A4',.5],['G4',.5],
+    ['F#4',1,'D3'],['D4',1],['D4',1],
+    ['B4',1,'B2'],['B4',.5],['C5',.5],['B4',.5],['A4',.5],
+    ['G4',1,'C3'],['E4',1],['D4',.5],['D4',.5],
+    ['E4',1,'D3'],['A4',1],['F#4',1],
+    ['G4',3,'G2'],
+    ['D4',1],
+    ['G4',1,'G2'],['G4',1],['G4',1],
+    ['F#4',2,'D3'],['F#4',1],
+    ['G4',1,'E3'],['F#4',1],['E4',1],
+    ['D4',2,'D3'],['A4',1],
+    ['B4',1,'G2'],['A4',1],['G4',1],
+    ['D5',1,'B2'],['D4',1],['D4',.5],['D4',.5],
+    ['E4',1,'D3'],['A4',1],['F#4',1],
+    ['G4',3,'G2'],
+    [null,2]
+  ];
+  function bell(freq, t, vol, len) {
+    // music-box tone: fundamental + bright inharmonic partial, quick attack, long decay
+    [[1, 1], [2.0, 0.35], [4.2, 0.12]].forEach(([mul, a]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = freq * mul;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol * a, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len / mul);
+      o.connect(g).connect(master); o.start(t); o.stop(t + len + 0.1);
+    });
+  }
+  function schedule() {
+    while (nextTime < ctx.currentTime + 0.4) {
+      const [n, beats, bass] = song[idx];
+      if (n) bell(N(m[n]), nextTime, 0.16, 2.2);
+      if (bass) bell(N(m[bass]), nextTime, 0.10, 3.0);
+      nextTime += beats * BEAT;
+      idx = (idx + 1) % song.length;
+    }
+  }
+  function start() {
+    if (ctx) return;
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = 0.55;
+    // gentle echo for a dreamy, roomy feel
+    const delay = ctx.createDelay(), fb = ctx.createGain(), wet = ctx.createGain();
+    delay.delayTime.value = 0.31; fb.gain.value = 0.3; wet.gain.value = 0.25;
+    master.connect(ctx.destination); master.connect(delay); delay.connect(fb).connect(delay); delay.connect(wet).connect(ctx.destination);
+    nextTime = ctx.currentTime + 0.3;
+    timer = setInterval(schedule, 100);
+  }
+  function toggle() {
+    if (!ctx) { start(); on = true; return on; }
+    on = !on;
+    on ? ctx.resume() : ctx.suspend();
+    return on;
+  }
+  return { start, toggle };
+})();
+const musicBtn = document.getElementById('musicBtn');
+musicBtn.onclick = () => musicBtn.classList.toggle('off', !music.toggle());
+
+// ---------- Intro card ----------
+const intro = document.getElementById('intro');
+let cameraStarted = false;
+document.getElementById('startBtn').onclick = () => {
+  intro.classList.add('hide'); music.start();
+  if (!cameraStarted) { cameraStarted = true; startCamera(); }
+};
+document.getElementById('skipBtn').onclick = () => { intro.classList.add('hide'); music.start(); toast('Hold E to scatter · C to gather'); };
+document.getElementById('helpBtn').onclick = () => intro.classList.remove('hide');
 
 // ---------- Loop ----------
 const clock = new THREE.Clock();
@@ -258,14 +552,16 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   detectHand();
-  updateTargets();
-  // frame-rate independent smoothing; explosion is snappy, return is graceful
-  exp += (targetExp - exp) * (1 - Math.exp(-dt * (targetExp > exp ? 4.5 : 2.2)));
-  con += (targetCon - con) * (1 - Math.exp(-dt * (targetCon > con ? 4.0 : 2.2)));
+  updateTargets(dt);
+  // keys already ramp slowly, so follow them closely; hand input gets eased
+  const k = handOpenness === null ? 10 : null;
+  exp += (targetExp - exp) * (1 - Math.exp(-dt * (k ?? (targetExp > exp ? 4.5 : 2.2))));
+  con += (targetCon - con) * (1 - Math.exp(-dt * (k ?? (targetCon > con ? 4.0 : 2.2))));
+  updateBand(dt, t);
   mat.uniforms.uTime.value = t; mat.uniforms.uExp.value = exp; mat.uniforms.uCon.value = con;
   starsMat.uniforms.uTime.value = t;
-  bloom.strength = 1.0 + con * 0.9 + exp * 0.3;
-  meterFill.style.width = ((handOpenness ?? 0.5) * 100).toFixed(0) + '%';
+  bloom.strength = 0.55 + con * 0.35 + exp * 0.15;
+  meterFill.style.width = ((handOpenness ?? 0) * 100).toFixed(0) + '%';
   controls.update();
   composer.render();
 }
